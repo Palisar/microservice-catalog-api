@@ -1,4 +1,4 @@
-﻿using Catalog.Service.Entities;
+﻿using Catalog.Service.Api.Entities;
 using Play.Catlog.Service.DTOs;
 
 namespace Catalog.Service.Api
@@ -11,3 +11,4 @@ namespace Catalog.Service.Api
         }
     }
 }
+ 

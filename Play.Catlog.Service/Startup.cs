@@ -1,22 +1,12 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using Catalog.Service.Api.Settings;
+using Catalog.Service.Api.Entities;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.HttpsPolicy;
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
 using Microsoft.OpenApi.Models;
-using Catalog.Service.Repository;
-using MongoDB.Bson;
-using MongoDB.Bson.Serialization;
-using MongoDB.Bson.Serialization.Serializers;
-using MongoDB.Driver;
+using Play.Common.MongoDb;
+using Play.Common.Settings;
 
 namespace Play.Catlog.Service
 {
@@ -33,22 +23,9 @@ namespace Play.Catlog.Service
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
-            BsonSerializer.RegisterSerializer(new GuidSerializer(BsonType.String));
-            BsonSerializer.RegisterSerializer(new DateTimeOffsetSerializer(BsonType.String));
-
-
-            serviceSettings = Configuration.GetSection(nameof(ServiceSettings)).Get<ServiceSettings>();
-
             
-            services.AddSingleton(serviceProvider =>
-                {
-                    var mongoDbSettings = Configuration.GetSection(nameof(MongoDbSettings)).Get<MongoDbSettings>();
-                    var mongoClient = new MongoClient(mongoDbSettings.ConnectionString);
-                    return mongoClient.GetDatabase(serviceSettings.ServiceName);
-                });
-
-            
-            services.AddTransient<IItemsRepository, ItemsRepository>();
+            services.AddMongo()
+                    .AddMongoRepository<Item>("items");
 
             services.AddControllers(options =>
                 options.SuppressAsyncSuffixInActionNames = false  //we have added this so at runtime the program wont remove any async suffix to the controller method names

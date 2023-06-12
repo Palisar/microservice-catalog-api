@@ -1,12 +1,12 @@
-﻿using System;
+﻿using Catalog.Service.Api.Entities;
+using Microsoft.AspNetCore.Mvc;
+using Play.Catlog.Service.DTOs;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Catalog.Service.Api;
-using Catalog.Service.Entities;
-using Catalog.Service.Repository;
-using Microsoft.AspNetCore.Mvc;
-using Play.Catlog.Service.DTOs;
+using Play.Common;
 
 namespace Play.Catlog.Service.Controllers
 {
@@ -20,28 +20,28 @@ namespace Play.Catlog.Service.Controllers
         //    new ItemDto(Guid.NewGuid(), "Antidote", "Cures Poison", 7, DateTimeOffset.UtcNow),
         //    new ItemDto(Guid.NewGuid(), "Bronze Sword", "Atk +3", 20, DateTimeOffset.UtcNow)
         //};
-        private readonly IItemsRepository _itemsRepository;
+        private readonly IRepository<Item> _repository;
 
-        public ItemsController(IItemsRepository itemsRepository)
+        public ItemsController(IRepository<Item> repository)
         {
-            this._itemsRepository = itemsRepository;
+            this._repository = repository;
         }
 
 
         [HttpGet]
         public async Task<IEnumerable<ItemDto>> GetAsync()
         {
-            var items = await _itemsRepository.GetAllAsync();
+            var items = await _repository.GetAllAsync();
             return items.Select(item => item.AsDto());
 
         }
 
         [HttpGet("{id}")]
-        
+
         public async Task<ActionResult<ItemDto>> GetByIdAsync(Guid id)
         {
-            var item = await _itemsRepository.GetByIdAsync(id);
-            if (item is null) 
+            var item = await _repository.GetAsync(id);
+            if (item is null)
                 return NotFound();
 
             return item.AsDto();
@@ -57,9 +57,9 @@ namespace Play.Catlog.Service.Controllers
                 Price = createItemDto.Price,
                 CreateDate = DateTimeOffset.UtcNow
             };
-            await _itemsRepository.CreateAsync(item);
+            await _repository.CreateAsync(item);
 
-            return CreatedAtAction( nameof(GetByIdAsync) ,new {id = item.Id }, item);
+            return CreatedAtAction(nameof(GetByIdAsync), new { id = item.Id }, item);
         }
 
 
@@ -67,7 +67,7 @@ namespace Play.Catlog.Service.Controllers
         public async Task<IActionResult> PutAsync(Guid id, UpdateItemDto updateItemDto)
         {
 
-            var existingItem = await _itemsRepository.GetByIdAsync(id);
+            var existingItem = await _repository.GetAsync(id);
 
             if (existingItem is null)
                 return NotFound();
@@ -76,7 +76,7 @@ namespace Play.Catlog.Service.Controllers
             existingItem.Description = updateItemDto.Description;
             existingItem.Price = updateItemDto.Price;
 
-            await _itemsRepository.UpdateAsync(existingItem);
+            await _repository.UpdateAsync(existingItem);
 
             return NoContent();
         }
@@ -84,12 +84,12 @@ namespace Play.Catlog.Service.Controllers
         [HttpDelete("{id}")]
         public async Task<IActionResult> Delete(Guid id)
         {
-            var item = await _itemsRepository.GetByIdAsync(id);
+            var item = await _repository.GetAsync(id);
 
             if (item is null)
                 return NotFound();
 
-            await _itemsRepository.RemoveAsync(item.Id);
+            await _repository.RemoveAsync(item.Id);
 
             return NoContent();
         }
