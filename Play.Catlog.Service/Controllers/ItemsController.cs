@@ -1,14 +1,14 @@
 ﻿using Catalog.Service.Api.Entities;
 using Microsoft.AspNetCore.Mvc;
-using Play.Catlog.Service.DTOs;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Catalog.Service.Api;
+using Catalog.Service.Api.DTOs; 
 using Play.Common;
 
-namespace Play.Catlog.Service.Controllers
+namespace Catalog.Service.Controllers
 {
     [ApiController]
     [Route("[controller]")]
@@ -21,6 +21,7 @@ namespace Play.Catlog.Service.Controllers
         //    new ItemDto(Guid.NewGuid(), "Bronze Sword", "Atk +3", 20, DateTimeOffset.UtcNow)
         //};
         private readonly IRepository<Item> _repository;
+        private static int requestsCounter = 0;
 
         public ItemsController(IRepository<Item> repository)
         {
@@ -29,10 +30,30 @@ namespace Play.Catlog.Service.Controllers
 
 
         [HttpGet]
-        public async Task<IEnumerable<ItemDto>> GetAsync()
+        public async Task<ActionResult<IEnumerable<ItemDto>>> GetAsync()
         {
+            requestsCounter++;
+
+            
+            Console.WriteLine($"Request {requestsCounter}: Starting...");
+
+            if (requestsCounter <= 2)
+            {
+                Console.WriteLine($"Request {requestsCounter}: Delaying...");
+                await Task.Delay(TimeSpan.FromSeconds(10));
+
+            }
+
+            if (requestsCounter <= 4)
+            {
+                Console.WriteLine($"Request {requestsCounter}: 500 (Internal Server Error).");
+                return StatusCode(500);
+
+            }
             var items = await _repository.GetAllAsync();
-            return items.Select(item => item.AsDto());
+
+            Console.WriteLine($"Request {requestsCounter}: 200 (OK).");
+            return Ok(items.Select(item => item.AsDto()));
 
         }
 
