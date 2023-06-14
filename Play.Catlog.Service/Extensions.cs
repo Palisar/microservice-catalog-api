@@ -1,5 +1,5 @@
-﻿using Catalog.Service.Api.Entities;
-using Play.Catlog.Service.DTOs;
+﻿using Catalog.Service.Api.DTOs;
+using Catalog.Service.Api.Entities;
 
 namespace Catalog.Service.Api
 {

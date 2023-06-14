@@ -1,7 +1,7 @@
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Hosting;
 
-namespace Play.Catlog.Service
+namespace Catalog.Service.Api
 {
     public class Program
     {

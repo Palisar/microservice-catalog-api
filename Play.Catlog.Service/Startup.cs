@@ -8,7 +8,7 @@ using Microsoft.OpenApi.Models;
 using Play.Common.MongoDb;
 using Play.Common.Settings;
 
-namespace Play.Catlog.Service
+namespace Catalog.Service.Api
 {
     public class Startup
     {
@@ -25,7 +25,7 @@ namespace Play.Catlog.Service
         {
             
             services.AddMongo()
-                    .AddMongoRepository<Item>("items");
+                    .AddMongoRepository<Item>("items"); 
 
             services.AddControllers(options =>
                 options.SuppressAsyncSuffixInActionNames = false  //we have added this so at runtime the program wont remove any async suffix to the controller method names
