@@ -5,7 +5,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Catalog.Service.Api;
-using Catalog.Service.Api.DTOs; 
+using Catalog.Service.Api.DTOs;
+using MassTransit;
+using Play.Catalog.Contracts;
 using Play.Common;
 
 namespace Catalog.Service.Controllers
@@ -21,40 +23,23 @@ namespace Catalog.Service.Controllers
         //    new ItemDto(Guid.NewGuid(), "Bronze Sword", "Atk +3", 20, DateTimeOffset.UtcNow)
         //};
         private readonly IRepository<Item> _repository;
-        private static int requestsCounter = 0;
+        private readonly IPublishEndpoint _publishEndpoint;
 
-        public ItemsController(IRepository<Item> repository)
+   
+        public ItemsController(IRepository<Item> repository, IPublishEndpoint publishEndpoint)
         {
             this._repository = repository;
+            _publishEndpoint = publishEndpoint;
         }
 
 
         [HttpGet]
         public async Task<ActionResult<IEnumerable<ItemDto>>> GetAsync()
         {
-            requestsCounter++;
-
-            
-            Console.WriteLine($"Request {requestsCounter}: Starting...");
-
-            if (requestsCounter <= 2)
-            {
-                Console.WriteLine($"Request {requestsCounter}: Delaying...");
-                await Task.Delay(TimeSpan.FromSeconds(10));
-
-            }
-
-            if (requestsCounter <= 4)
-            {
-                Console.WriteLine($"Request {requestsCounter}: 500 (Internal Server Error).");
-                return StatusCode(500);
-
-            }
+           
             var items = await _repository.GetAllAsync();
 
-            Console.WriteLine($"Request {requestsCounter}: 200 (OK).");
             return Ok(items.Select(item => item.AsDto()));
-
         }
 
         [HttpGet("{id}")]
@@ -80,6 +65,8 @@ namespace Catalog.Service.Controllers
             };
             await _repository.CreateAsync(item);
 
+            await _publishEndpoint.Publish(new CatalogIItemCreated(item.Id, item.Name, item.Description));
+
             return CreatedAtAction(nameof(GetByIdAsync), new { id = item.Id }, item);
         }
 
@@ -99,6 +86,8 @@ namespace Catalog.Service.Controllers
 
             await _repository.UpdateAsync(existingItem);
 
+            await _publishEndpoint.Publish(new CatalogIItemUpdated(existingItem.Id, existingItem.Name, existingItem.Description));
+
             return NoContent();
         }
 
@@ -111,6 +100,8 @@ namespace Catalog.Service.Controllers
                 return NotFound();
 
             await _repository.RemoveAsync(item.Id);
+
+            await _publishEndpoint.Publish(new CatalogIItemDeleted(item.Id));
 
             return NoContent();
         }
