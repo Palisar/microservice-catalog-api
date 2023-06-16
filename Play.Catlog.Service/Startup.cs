@@ -5,8 +5,10 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.OpenApi.Models;
-using Play.Common.MongoDb;
+using Play.Common.MassTransit;
 using Play.Common.Settings;
+using Play.Common.MongoDB;
+
 
 namespace Catalog.Service.Api
 {
@@ -23,12 +25,15 @@ namespace Catalog.Service.Api
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
-            
+            serviceSettings = Configuration.GetSection(nameof(ServiceSettings)).Get<ServiceSettings>();
+
             services.AddMongo()
-                    .AddMongoRepository<Item>("items"); 
+                    .AddMongoRepository<Item>("items")
+                    .AddMassTransitWithRabbitMq();
+                    
 
             services.AddControllers(options =>
-                options.SuppressAsyncSuffixInActionNames = false  //we have added this so at runtime the program wont remove any async suffix to the controller method names
+                options.SuppressAsyncSuffixInActionNames = false //we have added this so at runtime the program wont remove any async suffix to the controller method names
                     );
             services.AddSwaggerGen(c =>
             {
